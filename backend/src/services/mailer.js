@@ -316,3 +316,42 @@ export async function sendOTP(sender_email, otp) {
         throw error;
     }
 }
+
+
+export async function sendNotificationEmail(toEmail, batchId, expiryDate) {
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'TextileERP Safety <contact@nedbrandcolab.studio>', 
+      to: [toEmail],
+      subject: `⚠️ URGENT: Fire Extinguisher Batch ${batchId} Nearing Expiry`,
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 24px; color: #333; max-width: 600px; border: 1px solid #e0e0e0; border-radius: 8px;">
+          <h2 style="color: #d9534f; margin-top: 0;">🛡️ Fire Extinguisher Expiry Alert</h2>
+          <p>Hello Admin,</p>
+          <p>This is an automated compliance notice from your <strong>TextileERP</strong> system.</p>
+          
+          <div style="background: #f9f9f9; padding: 12px 16px; border-left: 4px solid #d9534f; margin: 16px 0;">
+            <p style="margin: 4px 0;"><strong>Batch ID:</strong> ${batchId}</p>
+            <p style="margin: 4px 0;"><strong>Expiry Date:</strong> ${new Date(expiryDate).toDateString()}</p>
+          </div>
+
+          <p>This batch is approaching its expiration window (7 days remaining). Please schedule an immediate inspection or replacement to maintain safety compliance.</p>
+          
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+          <p style="font-size: 12px; color: #777; margin-bottom: 0;">TextileERP Automated Safety Management System</p>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error(`[Email Error from Resend]:`, error);
+      throw new Error(error.message);
+    }
+
+    console.log(`[Email Success] Expiry warning sent to ${toEmail}. ID: ${data?.id}`);
+    return data;
+  } catch (error) {
+    console.error(`[Email Error] Failed to dispatch Resend email:`, error);
+    throw error;
+  }
+}

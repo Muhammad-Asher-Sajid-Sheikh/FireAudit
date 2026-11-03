@@ -791,6 +791,7 @@ export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typ
 export const FireExtinguisherScalarFieldEnum = {
   batchId: 'batchId',
   model: 'model',
+  batchSize: 'batchSize',
   expiryDate: 'expiryDate',
   isExpired: 'isExpired',
   createdAt: 'createdAt',

@@ -95,6 +95,7 @@ model AuditLog {
 model FireExtinguisher {
   batchId      String    @id @default(uuid())
   model        String
+  batchSize    Int           @default(0)
   expiryDate   DateTime
   isExpired    Boolean   @default(false)
   createdAt    DateTime  @default(now())

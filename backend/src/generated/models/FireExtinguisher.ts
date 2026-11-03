@@ -20,13 +20,24 @@ export type FireExtinguisherModel = runtime.Types.Result.DefaultSelection<Prisma
 
 export type AggregateFireExtinguisher = {
   _count: FireExtinguisherCountAggregateOutputType | null
+  _avg: FireExtinguisherAvgAggregateOutputType | null
+  _sum: FireExtinguisherSumAggregateOutputType | null
   _min: FireExtinguisherMinAggregateOutputType | null
   _max: FireExtinguisherMaxAggregateOutputType | null
+}
+
+export type FireExtinguisherAvgAggregateOutputType = {
+  batchSize: number | null
+}
+
+export type FireExtinguisherSumAggregateOutputType = {
+  batchSize: number | null
 }
 
 export type FireExtinguisherMinAggregateOutputType = {
   batchId: string | null
   model: string | null
+  batchSize: number | null
   expiryDate: Date | null
   isExpired: boolean | null
   createdAt: Date | null
@@ -36,6 +47,7 @@ export type FireExtinguisherMinAggregateOutputType = {
 export type FireExtinguisherMaxAggregateOutputType = {
   batchId: string | null
   model: string | null
+  batchSize: number | null
   expiryDate: Date | null
   isExpired: boolean | null
   createdAt: Date | null
@@ -45,6 +57,7 @@ export type FireExtinguisherMaxAggregateOutputType = {
 export type FireExtinguisherCountAggregateOutputType = {
   batchId: number
   model: number
+  batchSize: number
   expiryDate: number
   isExpired: number
   createdAt: number
@@ -53,9 +66,18 @@ export type FireExtinguisherCountAggregateOutputType = {
 }
 
 
+export type FireExtinguisherAvgAggregateInputType = {
+  batchSize?: true
+}
+
+export type FireExtinguisherSumAggregateInputType = {
+  batchSize?: true
+}
+
 export type FireExtinguisherMinAggregateInputType = {
   batchId?: true
   model?: true
+  batchSize?: true
   expiryDate?: true
   isExpired?: true
   createdAt?: true
@@ -65,6 +87,7 @@ export type FireExtinguisherMinAggregateInputType = {
 export type FireExtinguisherMaxAggregateInputType = {
   batchId?: true
   model?: true
+  batchSize?: true
   expiryDate?: true
   isExpired?: true
   createdAt?: true
@@ -74,6 +97,7 @@ export type FireExtinguisherMaxAggregateInputType = {
 export type FireExtinguisherCountAggregateInputType = {
   batchId?: true
   model?: true
+  batchSize?: true
   expiryDate?: true
   isExpired?: true
   createdAt?: true
@@ -119,6 +143,18 @@ export type FireExtinguisherAggregateArgs<ExtArgs extends runtime.Types.Extensio
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: FireExtinguisherAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: FireExtinguisherSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: FireExtinguisherMinAggregateInputType
@@ -149,6 +185,8 @@ export type FireExtinguisherGroupByArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   _count?: FireExtinguisherCountAggregateInputType | true
+  _avg?: FireExtinguisherAvgAggregateInputType
+  _sum?: FireExtinguisherSumAggregateInputType
   _min?: FireExtinguisherMinAggregateInputType
   _max?: FireExtinguisherMaxAggregateInputType
 }
@@ -156,11 +194,14 @@ export type FireExtinguisherGroupByArgs<ExtArgs extends runtime.Types.Extensions
 export type FireExtinguisherGroupByOutputType = {
   batchId: string
   model: string
+  batchSize: number
   expiryDate: Date
   isExpired: boolean
   createdAt: Date
   updatedAt: Date
   _count: FireExtinguisherCountAggregateOutputType | null
+  _avg: FireExtinguisherAvgAggregateOutputType | null
+  _sum: FireExtinguisherSumAggregateOutputType | null
   _min: FireExtinguisherMinAggregateOutputType | null
   _max: FireExtinguisherMaxAggregateOutputType | null
 }
@@ -186,6 +227,7 @@ export type FireExtinguisherWhereInput = {
   NOT?: Prisma.FireExtinguisherWhereInput | Prisma.FireExtinguisherWhereInput[]
   batchId?: Prisma.StringFilter<"FireExtinguisher"> | string
   model?: Prisma.StringFilter<"FireExtinguisher"> | string
+  batchSize?: Prisma.IntFilter<"FireExtinguisher"> | number
   expiryDate?: Prisma.DateTimeFilter<"FireExtinguisher"> | Date | string
   isExpired?: Prisma.BoolFilter<"FireExtinguisher"> | boolean
   createdAt?: Prisma.DateTimeFilter<"FireExtinguisher"> | Date | string
@@ -195,6 +237,7 @@ export type FireExtinguisherWhereInput = {
 export type FireExtinguisherOrderByWithRelationInput = {
   batchId?: Prisma.SortOrder
   model?: Prisma.SortOrder
+  batchSize?: Prisma.SortOrder
   expiryDate?: Prisma.SortOrder
   isExpired?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -207,6 +250,7 @@ export type FireExtinguisherWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.FireExtinguisherWhereInput[]
   NOT?: Prisma.FireExtinguisherWhereInput | Prisma.FireExtinguisherWhereInput[]
   model?: Prisma.StringFilter<"FireExtinguisher"> | string
+  batchSize?: Prisma.IntFilter<"FireExtinguisher"> | number
   expiryDate?: Prisma.DateTimeFilter<"FireExtinguisher"> | Date | string
   isExpired?: Prisma.BoolFilter<"FireExtinguisher"> | boolean
   createdAt?: Prisma.DateTimeFilter<"FireExtinguisher"> | Date | string
@@ -216,13 +260,16 @@ export type FireExtinguisherWhereUniqueInput = Prisma.AtLeast<{
 export type FireExtinguisherOrderByWithAggregationInput = {
   batchId?: Prisma.SortOrder
   model?: Prisma.SortOrder
+  batchSize?: Prisma.SortOrder
   expiryDate?: Prisma.SortOrder
   isExpired?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.FireExtinguisherCountOrderByAggregateInput
+  _avg?: Prisma.FireExtinguisherAvgOrderByAggregateInput
   _max?: Prisma.FireExtinguisherMaxOrderByAggregateInput
   _min?: Prisma.FireExtinguisherMinOrderByAggregateInput
+  _sum?: Prisma.FireExtinguisherSumOrderByAggregateInput
 }
 
 export type FireExtinguisherScalarWhereWithAggregatesInput = {
@@ -231,6 +278,7 @@ export type FireExtinguisherScalarWhereWithAggregatesInput = {
   NOT?: Prisma.FireExtinguisherScalarWhereWithAggregatesInput | Prisma.FireExtinguisherScalarWhereWithAggregatesInput[]
   batchId?: Prisma.StringWithAggregatesFilter<"FireExtinguisher"> | string
   model?: Prisma.StringWithAggregatesFilter<"FireExtinguisher"> | string
+  batchSize?: Prisma.IntWithAggregatesFilter<"FireExtinguisher"> | number
   expiryDate?: Prisma.DateTimeWithAggregatesFilter<"FireExtinguisher"> | Date | string
   isExpired?: Prisma.BoolWithAggregatesFilter<"FireExtinguisher"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"FireExtinguisher"> | Date | string
@@ -240,6 +288,7 @@ export type FireExtinguisherScalarWhereWithAggregatesInput = {
 export type FireExtinguisherCreateInput = {
   batchId?: string
   model: string
+  batchSize?: number
   expiryDate: Date | string
   isExpired?: boolean
   createdAt?: Date | string
@@ -249,6 +298,7 @@ export type FireExtinguisherCreateInput = {
 export type FireExtinguisherUncheckedCreateInput = {
   batchId?: string
   model: string
+  batchSize?: number
   expiryDate: Date | string
   isExpired?: boolean
   createdAt?: Date | string
@@ -258,6 +308,7 @@ export type FireExtinguisherUncheckedCreateInput = {
 export type FireExtinguisherUpdateInput = {
   batchId?: Prisma.StringFieldUpdateOperationsInput | string
   model?: Prisma.StringFieldUpdateOperationsInput | string
+  batchSize?: Prisma.IntFieldUpdateOperationsInput | number
   expiryDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isExpired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -267,6 +318,7 @@ export type FireExtinguisherUpdateInput = {
 export type FireExtinguisherUncheckedUpdateInput = {
   batchId?: Prisma.StringFieldUpdateOperationsInput | string
   model?: Prisma.StringFieldUpdateOperationsInput | string
+  batchSize?: Prisma.IntFieldUpdateOperationsInput | number
   expiryDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isExpired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -276,6 +328,7 @@ export type FireExtinguisherUncheckedUpdateInput = {
 export type FireExtinguisherCreateManyInput = {
   batchId?: string
   model: string
+  batchSize?: number
   expiryDate: Date | string
   isExpired?: boolean
   createdAt?: Date | string
@@ -285,6 +338,7 @@ export type FireExtinguisherCreateManyInput = {
 export type FireExtinguisherUpdateManyMutationInput = {
   batchId?: Prisma.StringFieldUpdateOperationsInput | string
   model?: Prisma.StringFieldUpdateOperationsInput | string
+  batchSize?: Prisma.IntFieldUpdateOperationsInput | number
   expiryDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isExpired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -294,6 +348,7 @@ export type FireExtinguisherUpdateManyMutationInput = {
 export type FireExtinguisherUncheckedUpdateManyInput = {
   batchId?: Prisma.StringFieldUpdateOperationsInput | string
   model?: Prisma.StringFieldUpdateOperationsInput | string
+  batchSize?: Prisma.IntFieldUpdateOperationsInput | number
   expiryDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isExpired?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -303,15 +358,21 @@ export type FireExtinguisherUncheckedUpdateManyInput = {
 export type FireExtinguisherCountOrderByAggregateInput = {
   batchId?: Prisma.SortOrder
   model?: Prisma.SortOrder
+  batchSize?: Prisma.SortOrder
   expiryDate?: Prisma.SortOrder
   isExpired?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
+export type FireExtinguisherAvgOrderByAggregateInput = {
+  batchSize?: Prisma.SortOrder
+}
+
 export type FireExtinguisherMaxOrderByAggregateInput = {
   batchId?: Prisma.SortOrder
   model?: Prisma.SortOrder
+  batchSize?: Prisma.SortOrder
   expiryDate?: Prisma.SortOrder
   isExpired?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -321,10 +382,15 @@ export type FireExtinguisherMaxOrderByAggregateInput = {
 export type FireExtinguisherMinOrderByAggregateInput = {
   batchId?: Prisma.SortOrder
   model?: Prisma.SortOrder
+  batchSize?: Prisma.SortOrder
   expiryDate?: Prisma.SortOrder
   isExpired?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type FireExtinguisherSumOrderByAggregateInput = {
+  batchSize?: Prisma.SortOrder
 }
 
 
@@ -332,6 +398,7 @@ export type FireExtinguisherMinOrderByAggregateInput = {
 export type FireExtinguisherSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   batchId?: boolean
   model?: boolean
+  batchSize?: boolean
   expiryDate?: boolean
   isExpired?: boolean
   createdAt?: boolean
@@ -341,6 +408,7 @@ export type FireExtinguisherSelect<ExtArgs extends runtime.Types.Extensions.Inte
 export type FireExtinguisherSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   batchId?: boolean
   model?: boolean
+  batchSize?: boolean
   expiryDate?: boolean
   isExpired?: boolean
   createdAt?: boolean
@@ -350,6 +418,7 @@ export type FireExtinguisherSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
 export type FireExtinguisherSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   batchId?: boolean
   model?: boolean
+  batchSize?: boolean
   expiryDate?: boolean
   isExpired?: boolean
   createdAt?: boolean
@@ -359,13 +428,14 @@ export type FireExtinguisherSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
 export type FireExtinguisherSelectScalar = {
   batchId?: boolean
   model?: boolean
+  batchSize?: boolean
   expiryDate?: boolean
   isExpired?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type FireExtinguisherOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"batchId" | "model" | "expiryDate" | "isExpired" | "createdAt" | "updatedAt", ExtArgs["result"]["fireExtinguisher"]>
+export type FireExtinguisherOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"batchId" | "model" | "batchSize" | "expiryDate" | "isExpired" | "createdAt" | "updatedAt", ExtArgs["result"]["fireExtinguisher"]>
 
 export type $FireExtinguisherPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "FireExtinguisher"
@@ -373,6 +443,7 @@ export type $FireExtinguisherPayload<ExtArgs extends runtime.Types.Extensions.In
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     batchId: string
     model: string
+    batchSize: number
     expiryDate: Date
     isExpired: boolean
     createdAt: Date
@@ -802,6 +873,7 @@ export interface Prisma__FireExtinguisherClient<T, Null = never, ExtArgs extends
 export interface FireExtinguisherFieldRefs {
   readonly batchId: Prisma.FieldRef<"FireExtinguisher", 'String'>
   readonly model: Prisma.FieldRef<"FireExtinguisher", 'String'>
+  readonly batchSize: Prisma.FieldRef<"FireExtinguisher", 'Int'>
   readonly expiryDate: Prisma.FieldRef<"FireExtinguisher", 'DateTime'>
   readonly isExpired: Prisma.FieldRef<"FireExtinguisher", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"FireExtinguisher", 'DateTime'>

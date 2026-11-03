@@ -2,6 +2,8 @@ import { PrismaClient } from '../generated/client.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 import 'dotenv/config';
 
+import { scheduleBatchAlert, findBatchScheduler } from './schedularController.js'; // Import the scheduling function
+
 const prisma = new PrismaClient({
     adapter: new PrismaPg({
         connectionString: process.env.DATABASE_URL,
@@ -19,13 +21,13 @@ const getClientIP = (req) => {
  */
 export const createExtinguisher = async (req, res) => {
     try {
-        const { model, expiryDate, isExpired } = req.body;
+        const { model, expiryDate, batchSize, isExpired } = req.body;
         const userId = req.user?.id || "99630e85-0a0f-4819-8083-18fa62d12357"; // Assumes auth middleware sets req.user
 
-        if (!model || !expiryDate) {
+        if (!model || !expiryDate || !batchSize) {
             return res.status(400).json({
                 success: false,
-                message: "Model and expiryDate are required fields.",
+                message: "Model and expiryDate and batchSize are required fields.",
             });
         }
 
@@ -37,9 +39,26 @@ export const createExtinguisher = async (req, res) => {
             data: {
                 model,
                 expiryDate: new Date(expiryDate),
+                batchSize,
                 isExpired: isExpired ?? false,
             },
         });
+
+        const testBatchId = 'extinguisher-batch-001';
+  
+        console.log(`[Test Start] Admin is creating batch ${testBatchId}...`);
+        await scheduleBatchAlert(testBatchId, 8, true);
+        setTimeout(async () => {
+    console.log(`[Diagnostic Check at +2 seconds]:`);
+    await findBatchScheduler(testBatchId);
+}, 2000);
+
+// Check again after the 8 seconds have passed
+setTimeout(async () => {
+    console.log(`[Diagnostic Check at +10 seconds]:`);
+    await findBatchScheduler(testBatchId);
+}, 10000);
+        console.log(`[Test Waiting] Schedulers are set. Sit back and watch the console...`);
 
         // Fill the Audit Log
         await prisma.auditLog.create({
@@ -129,7 +148,7 @@ export const getExtinguisherById = async (req, res) => {
 export const updateExtinguisher = async (req, res) => {
     try {
         const { id } = req.params;
-        const { model, expiryDate, isExpired } = req.body;
+        const { model, expiryDate, batchSize, isExpired } = req.body;
         const userId = req.user?.id || "99630e85-0a0f-4819-8083-18fa62d12357";
 
         if (!userId) {
@@ -152,6 +171,7 @@ export const updateExtinguisher = async (req, res) => {
             data: {
                 ...(model && { model }),
                 ...(expiryDate && { expiryDate: new Date(expiryDate) }),
+                ...(batchSize && { batchSize }),
                 ...(isExpired !== undefined && { isExpired }),
             },
         });
