@@ -32,3 +32,8 @@ export type RefreshToken = Prisma.RefreshTokenModel
  * 
  */
 export type AuditLog = Prisma.AuditLogModel
+/**
+ * Model FireExtinguisher
+ * 
+ */
+export type FireExtinguisher = Prisma.FireExtinguisherModel

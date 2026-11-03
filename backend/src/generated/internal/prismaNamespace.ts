@@ -386,7 +386,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   RefreshToken: 'RefreshToken',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  FireExtinguisher: 'FireExtinguisher'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -402,7 +403,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "refreshToken" | "auditLog"
+    modelProps: "user" | "refreshToken" | "auditLog" | "fireExtinguisher"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -628,6 +629,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    FireExtinguisher: {
+      payload: Prisma.$FireExtinguisherPayload<ExtArgs>
+      fields: Prisma.FireExtinguisherFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FireExtinguisherFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FireExtinguisherPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FireExtinguisherFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FireExtinguisherPayload>
+        }
+        findFirst: {
+          args: Prisma.FireExtinguisherFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FireExtinguisherPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FireExtinguisherFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FireExtinguisherPayload>
+        }
+        findMany: {
+          args: Prisma.FireExtinguisherFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FireExtinguisherPayload>[]
+        }
+        create: {
+          args: Prisma.FireExtinguisherCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FireExtinguisherPayload>
+        }
+        createMany: {
+          args: Prisma.FireExtinguisherCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FireExtinguisherCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FireExtinguisherPayload>[]
+        }
+        delete: {
+          args: Prisma.FireExtinguisherDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FireExtinguisherPayload>
+        }
+        update: {
+          args: Prisma.FireExtinguisherUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FireExtinguisherPayload>
+        }
+        deleteMany: {
+          args: Prisma.FireExtinguisherDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FireExtinguisherUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FireExtinguisherUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FireExtinguisherPayload>[]
+        }
+        upsert: {
+          args: Prisma.FireExtinguisherUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FireExtinguisherPayload>
+        }
+        aggregate: {
+          args: Prisma.FireExtinguisherAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFireExtinguisher>
+        }
+        groupBy: {
+          args: Prisma.FireExtinguisherGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FireExtinguisherGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FireExtinguisherCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FireExtinguisherCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -711,6 +786,18 @@ export const AuditLogScalarFieldEnum = {
 } as const
 
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
+export const FireExtinguisherScalarFieldEnum = {
+  batchId: 'batchId',
+  model: 'model',
+  expiryDate: 'expiryDate',
+  isExpired: 'isExpired',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FireExtinguisherScalarFieldEnum = (typeof FireExtinguisherScalarFieldEnum)[keyof typeof FireExtinguisherScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -960,6 +1047,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   refreshToken?: Prisma.RefreshTokenOmit
   auditLog?: Prisma.AuditLogOmit
+  fireExtinguisher?: Prisma.FireExtinguisherOmit
 }
 
 /* Types for Logging */

@@ -34,7 +34,12 @@ enum AuditActionType {
   ROLE_CHANGED
   PASSWORD_CHANGED
   LOGIN_ATTEMPT
+
+  // EXTINGUISHER LOGS
   LOGIN_FAILED
+  EXTINGUISHER_CREATED
+  EXTINGUISHER_UPDATED
+  EXTINGUISHER_DELETED
 }
 
 model User {
@@ -84,4 +89,16 @@ model AuditLog {
   @@index([userId])
   @@index([timestamp])
   @@index([actionType])
+}
+
+
+model FireExtinguisher {
+  batchId      String    @id @default(uuid())
+  model        String
+  expiryDate   DateTime
+  isExpired    Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("FireExtinguisher")
 }
