@@ -1,2 +1,1 @@
-# FireAudit
-A Fire Extinguisher Management System
+Read the api-reference.md
