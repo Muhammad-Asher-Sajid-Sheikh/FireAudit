@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../dashboard/dashboard_screen.dart';
 import '../login/login_screen.dart';
+import '../services/auth_service.dart';
 import '../widgets/appcolors.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -16,15 +18,24 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    _c = AnimationController(vsync: this, duration: const Duration(seconds: 3))
-      ..forward().whenComplete(_next);
+    _c = AnimationController(vsync: this, duration: const Duration(seconds: 3));
+    _start();
   }
 
-  // TODO: check stored token here -> dashboard or login
-  void _next() {
+  /// Plays the progress bar while checking for a saved login at the same time.
+  /// Valid saved session -> dashboard, otherwise -> login.
+  Future<void> _start() async {
+    final results = await Future.wait<bool>([
+      _c.forward().then((_) => false),
+      AuthService.instance.tryAutoLogin(),
+    ]);
     if (!mounted) return;
+    final loggedIn = results[1];
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      MaterialPageRoute(
+        builder: (_) =>
+        loggedIn ? const DashboardScreen() : const LoginScreen(),
+      ),
     );
   }
 

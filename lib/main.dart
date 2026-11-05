@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
+import 'core/window_helper.dart';
 import 'splash/splash_screen.dart';
 import 'widgets/appcolors.dart';
-import 'core/window_helper.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
 
-  const options = WindowOptions(
-    size: Size(760, 680),
-    minimumSize: Size(760, 680),
-    center: true,
-    title: 'Fire Audit',
+  await windowManager.waitUntilReadyToShow(
+    const WindowOptions(title: 'Fire Audit'),
+        () async {
+      await WindowHelper.authMode(); // size the window before showing it
+      await windowManager.show();
+      await windowManager.focus();
+    },
   );
-  await windowManager.waitUntilReadyToShow(options, () async {
-    await windowManager.show();
-    await windowManager.focus();
-  });
 
   runApp(const FireAuditApp());
 }

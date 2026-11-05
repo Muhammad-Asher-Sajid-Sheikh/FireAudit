@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import '../core/api_clinet.dart';
+import '../services/auth_service.dart';
 import '../splash/splash_screen.dart' show AppLogo, BrandTitle;
 import '../widgets/appcolors.dart';
+import '../widgets/error_banner.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -10,14 +13,24 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  // Roles accepted by the backend (value sent -> label shown).
+  static const _roles = {
+    'PRODUCTION': 'Production',
+    'MERCHANDISE': 'Merchandise',
+    'MARKETING': 'Marketing',
+    'MANAGEMENT': 'Management',
+  };
+
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _pass = TextEditingController();
   final _confirm = TextEditingController();
+  String _role = 'PRODUCTION';
   bool _obscure1 = true;
   bool _obscure2 = true;
   bool _loading = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -29,16 +42,64 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _register() async {
+    if (_loading) return;
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
-    // TODO: call register API from Postman collection
-    await Future.delayed(const Duration(seconds: 1));
-    if (!mounted) return;
-    setState(() => _loading = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Account created. Please login.')),
-    );
-    Navigator.of(context).pop();
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final message = await AuthService.instance.register(
+        name: _name.text,
+        email: _email.text,
+        password: _pass.text,
+        confirmPassword: _confirm.text,
+        role: _role,
+      );
+      if (!mounted) return;
+      setState(() => _loading = false);
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Registration submitted'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop(); // back to login
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = e.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = 'Something went wrong. Please try again.';
+      });
+    }
+  }
+
+  // Same rule as the backend: 8+ chars with upper, lower, number and symbol.
+  String? _validatePassword(String? v) {
+    final p = v ?? '';
+    if (p.length < 8) return 'At least 8 characters';
+    if (!RegExp(r'[A-Z]').hasMatch(p)) return 'Add an uppercase letter';
+    if (!RegExp(r'[a-z]').hasMatch(p)) return 'Add a lowercase letter';
+    if (!RegExp(r'\d').hasMatch(p)) return 'Add a number';
+    if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(p)) {
+      return 'Add a special character (e.g. ! @ # \$)';
+    }
+    return null;
   }
 
   InputDecoration _dec(String hint, IconData icon, {Widget? suffix}) {
@@ -60,9 +121,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _eye(bool obscure, VoidCallback onTap) => IconButton(
-    icon: Icon(obscure
-        ? Icons.visibility_off_outlined
-        : Icons.visibility_outlined),
+    icon: Icon(
+        obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined),
     onPressed: onTap,
   );
 
@@ -82,7 +142,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             flex: 6,
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding:
+                const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 360),
                   child: Form(
@@ -107,6 +168,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const Text('Register to get started with Fire Audit',
                             style: TextStyle(color: AppColors.navy)),
                         const SizedBox(height: 18),
+                        if (_error != null) ErrorBanner(message: _error!),
                         TextFormField(
                           controller: _name,
                           decoration: _dec('Full Name', Icons.person),
@@ -130,15 +192,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           },
                         ),
                         const SizedBox(height: 12),
+                        DropdownButtonFormField<String>(
+                          initialValue: _role,
+                          isExpanded: true,
+                          decoration: _dec('Role', Icons.badge),
+                          items: [
+                            for (final e in _roles.entries)
+                              DropdownMenuItem(
+                                  value: e.key, child: Text(e.value)),
+                          ],
+                          onChanged: (v) =>
+                              setState(() => _role = v ?? _role),
+                        ),
+                        const SizedBox(height: 12),
                         TextFormField(
                           controller: _pass,
                           obscureText: _obscure1,
                           decoration: _dec('Password', Icons.lock,
                               suffix: _eye(_obscure1,
                                       () => setState(() => _obscure1 = !_obscure1))),
-                          validator: (v) => (v == null || v.length < 6)
-                              ? 'Minimum 6 characters'
-                              : null,
+                          validator: _validatePassword,
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -183,7 +256,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           width: double.infinity,
                           height: 46,
                           child: OutlinedButton.icon(
-                            onPressed: () {}, // TODO: Google sign-in (if backend supports it)
+                            onPressed: () =>
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          'Google sign-in is not available yet.')),
+                                ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.navy,
                               side: const BorderSide(color: AppColors.border),
