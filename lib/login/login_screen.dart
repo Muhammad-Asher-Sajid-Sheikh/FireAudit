@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import '../core/api_clinet.dart';
+
+import '../dashboard/dashboard_screen.dart';
+import '../register/register_screen.dart';
+import '../services/auth_service.dart';
 import '../splash/splash_screen.dart' show AppLogo, BrandTitle;
 import '../widgets/appcolors.dart';
-import '../register/register_screen.dart';
-import '../dashboard/dashboard_screen.dart';
+import '../widgets/error_banner.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,29 +17,51 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _userCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   bool _obscure = true;
   bool _remember = true;
   bool _loading = false;
+  String? _error;
 
   @override
   void dispose() {
-    _userCtrl.dispose();
+    _emailCtrl.dispose();
     _passCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _login() async {
+    if (_loading) return;
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
-    // TODO: call login API from Postman collection
-    await Future.delayed(const Duration(seconds: 1));
-    if (!mounted) return;
-    setState(() => _loading = false);
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const DashboardScreen()),
-    );
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await AuthService.instance
+          .login(_emailCtrl.text, _passCtrl.text, remember: _remember);
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = e.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = 'Something went wrong. Please try again.';
+      });
+    }
+  }
+
+  void _info(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   InputDecoration _dec(String hint, IconData icon, {Widget? suffix}) {
@@ -97,12 +123,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         const Text('Access your fire audit dashboard',
                             style: TextStyle(color: AppColors.navy)),
                         const SizedBox(height: 20),
+                        if (_error != null) ErrorBanner(message: _error!),
+                        // The backend logs in with email only (no username).
                         TextFormField(
-                          controller: _userCtrl,
-                          decoration: _dec('Email or Username', Icons.person),
-                          validator: (v) => (v == null || v.trim().isEmpty)
-                              ? 'Enter your email or username'
-                              : null,
+                          controller: _emailCtrl,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: _dec('Email Address', Icons.person),
+                          validator: (v) {
+                            final t = v?.trim() ?? '';
+                            if (t.isEmpty) return 'Enter your email';
+                            if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                                .hasMatch(t)) {
+                              return 'Enter a valid email';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 14),
                         TextFormField(
@@ -137,7 +172,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 style: TextStyle(fontSize: 13)),
                             const Spacer(),
                             TextButton(
-                              onPressed: () {},
+                              onPressed: () => _info(
+                                  'Password reset is not available yet. Please contact management.'),
                               child: const Text('Forgot Password?',
                                   style: TextStyle(
                                       color: AppColors.red, fontSize: 13)),

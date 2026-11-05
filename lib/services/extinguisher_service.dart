@@ -1,4 +1,5 @@
-import '../core/api_client.dart';
+import '../core/api_clinet.dart';
+
 import '../models/extinguisher.dart';
 
 class ExtinguisherService {

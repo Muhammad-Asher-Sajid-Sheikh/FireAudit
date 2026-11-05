@@ -1,9 +1,18 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:window_manager/window_manager.dart';
-import '../login/login_screen.dart';
-import '../widgets/appcolors.dart';
+import '../core/api_clinet.dart';
+import '../core/format.dart';
+import '../core/session.dart';
 import '../core/window_helper.dart';
+import '../equipment/equipment_screen.dart';
+import '../login/login_screen.dart';
+import '../models/extinguisher.dart';
+import '../reports/reports_screen.dart';
+import '../services/auth_service.dart';
+import '../services/extinguisher_service.dart';
+import '../widgets/appcolors.dart';
+import '../widgets/error_banner.dart';
+import '../widgets/status_chip.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -15,22 +24,87 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selected = 0;
 
-  // TODO: replace with data from your API
-  final String userName = 'Daniyal Akhtar';
-  final int total = 12, completed = 9, pending = 2, critical = 1;
+  List<Extinguisher> _items = [];
+  bool _loading = true;
+  String? _error;
+
+  String get userName {
+    final n = Session.instance.user?.name ?? '';
+    return n.isEmpty ? 'User' : n;
+  }
+
+  String get userRole => Session.instance.user?.roleLabel ?? '';
 
   @override
   void initState() {
     super.initState();
-    _resizeWindow();
+    WindowHelper.dashboardMode();
+    _load();
   }
 
-  Future<void> _resizeWindow() => WindowHelper.dashboardMode();
+  /// Fetches the extinguisher list. A 401 here means the session could not be
+  /// refreshed, so we send the user back to the login screen.
+  Future<void> _load() async {
+    try {
+      final list = await ExtinguisherService.instance.list();
+      if (!mounted) return;
+      setState(() {
+        _items = list;
+        _loading = false;
+        _error = null;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      if (e.isAuthError) {
+        await _logout();
+        return;
+      }
+      setState(() {
+        _loading = false;
+        _error = e.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = 'Could not load data. Please try again.';
+      });
+    }
+  }
 
-  void _logout() {
-    // TODO: clear stored token
+  Future<void> _refresh() async {
+    setState(() => _loading = true);
+    await _load();
+  }
+
+  Future<void> _logout() async {
+    await AuthService.instance.logout();
+    await WindowHelper.authMode();
+    if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
+  }
+
+  void _showGuidelines() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Fire Safety Guidelines'),
+        content: const Text(
+          '• Inspect extinguishers monthly\n'
+              '• Check the pressure gauge is in the green zone\n'
+              '• Make sure the pin and seal are intact\n'
+              '• Never block exits or equipment\n'
+              '• Replace or refill expired units immediately',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -44,14 +118,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onSelect: (i) => setState(() => _selected = i),
             onLogout: _logout,
           ),
-          Expanded(child: _buildMain()),
+          Expanded(child: _content()),
         ],
       ),
     );
   }
 
-  Widget _buildMain() {
-    final percent = total == 0 ? 0 : (completed / total * 100).round();
+  Widget _content() {
+    switch (_selected) {
+      case 0:
+        return _home();
+      case 2:
+        return const ReportsScreen();
+      case 3:
+        return EquipmentScreen(
+          items: _items,
+          loading: _loading,
+          error: _error,
+          onRefresh: _refresh,
+          onUnauthorized: _logout,
+        );
+      default:
+        return _ComingSoon(title: _Sidebar.items[_selected].$2);
+    }
+  }
+
+  Widget _home() {
+    final total = _items.length;
+    final valid =
+        _items.where((e) => e.status == EquipStatus.valid).length;
+    final expiring =
+        _items.where((e) => e.status == EquipStatus.expiringSoon).length;
+    final expired =
+        _items.where((e) => e.status == EquipStatus.expired).length;
+    final percent = total == 0 ? 0 : (valid / total * 100).round();
+    final recent = _items.take(3).toList();
+
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -92,7 +194,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               fontWeight: FontWeight.w800,
                               color: AppColors.navy)),
                       const SizedBox(height: 6),
-                      const Text("Here's what's happening with your fire audit system.",
+                      const Text(
+                          "Here's what's happening with your fire audit system.",
                           style: TextStyle(color: AppColors.navy)),
                     ],
                   ),
@@ -115,8 +218,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: Icon(Icons.person,
                                 size: 16, color: Colors.white)),
                         const SizedBox(width: 8),
-                        Text(userName,
-                            style: const TextStyle(fontWeight: FontWeight.w600)),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(userName,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w600, fontSize: 13)),
+                            if (userRole.isNotEmpty)
+                              Text(userRole,
+                                  style: const TextStyle(
+                                      fontSize: 11, color: AppColors.grey)),
+                          ],
+                        ),
                         const Icon(Icons.keyboard_arrow_down),
                       ],
                     ),
@@ -129,31 +242,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
             child: Column(
               children: [
+                if (_loading)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: LinearProgressIndicator(
+                        minHeight: 3, color: AppColors.red),
+                  ),
+                if (_error != null)
+                  ErrorBanner(message: _error!, onRetry: _refresh),
                 // Stat cards
                 Row(
                   children: [
-                    _StatCard('$total', 'Total Audits', Icons.assignment,
+                    _StatCard('$total', 'Total Batches', Icons.assignment,
                         AppColors.red, const Color(0xFFFCE4E4)),
                     const SizedBox(width: 16),
-                    _StatCard('$completed', 'Completed', Icons.check_box,
+                    _StatCard('$valid', 'Valid', Icons.check_box,
                         const Color(0xFF16A34A), const Color(0xFFDDF5E7)),
                     const SizedBox(width: 16),
-                    _StatCard('$pending', 'Pending', Icons.schedule,
+                    _StatCard('$expiring', 'Expiring Soon', Icons.schedule,
                         const Color(0xFFF59E0B), const Color(0xFFFDF0D5)),
                     const SizedBox(width: 16),
-                    _StatCard('$critical', 'Critical', Icons.priority_high,
+                    _StatCard('$expired', 'Expired', Icons.priority_high,
                         AppColors.red, const Color(0xFFFCE4E4)),
                   ],
                 ),
                 const SizedBox(height: 16),
-                // Overview + activities
+                // Overview + recent batches
                 SizedBox(
                   height: 250,
                   child: Row(
                     children: [
                       Expanded(
                         child: _Panel(
-                          title: 'Audit Overview',
+                          title: 'Equipment Overview',
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
@@ -161,8 +282,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 width: 160,
                                 height: 160,
                                 child: CustomPaint(
-                                  painter: _DonutPainter(
-                                      completed, pending, critical),
+                                  painter:
+                                  _DonutPainter(valid, expiring, expired),
                                   child: Center(
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
@@ -171,7 +292,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             style: const TextStyle(
                                                 fontSize: 28,
                                                 fontWeight: FontWeight.w800)),
-                                        const Text('Completed',
+                                        const Text('Valid',
                                             style: TextStyle(fontSize: 12)),
                                       ],
                                     ),
@@ -181,11 +302,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  _Legend(const Color(0xFF16A34A), 'Completed',
-                                      completed),
-                                  _Legend(const Color(0xFFF59E0B), 'Pending',
-                                      pending),
-                                  _Legend(AppColors.red, 'Critical', critical),
+                                  _Legend(const Color(0xFF16A34A), 'Valid',
+                                      valid),
+                                  _Legend(const Color(0xFFF59E0B),
+                                      'Expiring Soon', expiring),
+                                  _Legend(AppColors.red, 'Expired', expired),
                                 ],
                               ),
                             ],
@@ -195,23 +316,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: _Panel(
-                          title: 'Recent Activities',
-                          trailing: const Text('View All →',
-                              style: TextStyle(
-                                  color: AppColors.red,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 12)),
-                          child: Column(
-                            children: const [
-                              _Activity(Icons.check_circle, Color(0xFF16A34A),
-                                  'Audit Completed', 'Main Building - Karachi',
-                                  '2 hours ago'),
-                              _Activity(Icons.schedule, Color(0xFFF59E0B),
-                                  'New Audit Assigned', 'Warehouse Area',
-                                  '4 hours ago'),
-                              _Activity(Icons.error, AppColors.red,
-                                  'Critical Issue Found',
-                                  'Fire Extinguisher Missing', '1 day ago'),
+                          title: 'Recent Batches',
+                          trailing: InkWell(
+                            onTap: () => setState(() => _selected = 3),
+                            child: const Text('View All →',
+                                style: TextStyle(
+                                    color: AppColors.red,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12)),
+                          ),
+                          child: recent.isEmpty
+                              ? Center(
+                            child: Text(
+                              _loading
+                                  ? 'Loading...'
+                                  : 'No extinguisher batches yet.',
+                              style:
+                              const TextStyle(color: AppColors.grey),
+                            ),
+                          )
+                              : Column(
+                            children: [
+                              for (final e in recent)
+                                _Activity(
+                                  statusIcon(e.status),
+                                  statusColor(e.status),
+                                  e.model,
+                                  '${e.batchSize} units • Expires ${formatDate(e.expiryDate)}',
+                                  timeAgo(e.createdAt),
+                                ),
                             ],
                           ),
                         ),
@@ -271,7 +404,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             style: TextStyle(fontSize: 12)),
                                         const SizedBox(height: 12),
                                         ElevatedButton(
-                                          onPressed: () {},
+                                          onPressed: _showGuidelines,
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: AppColors.red,
                                             foregroundColor: Colors.white,
@@ -297,10 +430,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           title: 'Quick Actions',
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: const [
-                              _QuickAction(Icons.search, 'New Audit'),
-                              _QuickAction(Icons.description, 'View Reports'),
-                              _QuickAction(Icons.settings, 'Settings'),
+                            children: [
+                              _QuickAction(Icons.add_box, 'Add Batch',
+                                      () => setState(() => _selected = 3)),
+                              _QuickAction(Icons.refresh, 'Refresh', _refresh),
+                              _QuickAction(Icons.logout, 'Logout', _logout),
                             ],
                           ),
                         ),
@@ -311,6 +445,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ComingSoon extends StatelessWidget {
+  final String title;
+  const _ComingSoon({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.construction, size: 56, color: AppColors.grey),
+          const SizedBox(height: 12),
+          Text(title,
+              style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.navy)),
+          const SizedBox(height: 4),
+          const Text('Coming soon. The backend has no endpoints for this yet.',
+              style: TextStyle(color: AppColors.grey)),
         ],
       ),
     );
@@ -548,7 +708,7 @@ class _Legend extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: SizedBox(
-        width: 140,
+        width: 150,
         child: Row(
           children: [
             CircleAvatar(radius: 5, backgroundColor: color),
@@ -581,14 +741,19 @@ class _Activity extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                         fontWeight: FontWeight.w700, fontSize: 13)),
                 Text(subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                         fontSize: 12, color: AppColors.grey)),
               ],
             ),
           ),
+          const SizedBox(width: 8),
           Text(time,
               style: const TextStyle(fontSize: 11, color: AppColors.grey)),
         ],
@@ -600,13 +765,14 @@ class _Activity extends StatelessWidget {
 class _QuickAction extends StatelessWidget {
   final IconData icon;
   final String label;
-  const _QuickAction(this.icon, this.label);
+  final VoidCallback onTap;
+  const _QuickAction(this.icon, this.label, this.onTap);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
-      onTap: () {}, // TODO: navigate
+      onTap: onTap,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -628,20 +794,35 @@ class _QuickAction extends StatelessWidget {
 }
 
 class _DonutPainter extends CustomPainter {
-  final int completed, pending, critical;
-  _DonutPainter(this.completed, this.pending, this.critical);
+  final int valid, expiring, expired;
+  _DonutPainter(this.valid, this.expiring, this.expired);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final total = completed + pending + critical;
-    if (total == 0) return;
     const stroke = 22.0;
     final rect = Rect.fromLTWH(
         stroke / 2, stroke / 2, size.width - stroke, size.height - stroke);
+    final total = valid + expiring + expired;
+
+    if (total == 0) {
+      // Empty state: a plain grey ring.
+      canvas.drawArc(
+        rect,
+        0,
+        2 * math.pi,
+        false,
+        Paint()
+          ..color = AppColors.border
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = stroke,
+      );
+      return;
+    }
+
     final parts = [
-      (completed, const Color(0xFF16A34A)),
-      (pending, const Color(0xFFF59E0B)),
-      (critical, AppColors.red),
+      (valid, const Color(0xFF16A34A)),
+      (expiring, const Color(0xFFF59E0B)),
+      (expired, AppColors.red),
     ];
     var start = -math.pi / 2;
     for (final p in parts) {
@@ -662,7 +843,5 @@ class _DonutPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _DonutPainter old) =>
-      old.completed != completed ||
-          old.pending != pending ||
-          old.critical != critical;
+      old.valid != valid || old.expiring != expiring || old.expired != expired;
 }
