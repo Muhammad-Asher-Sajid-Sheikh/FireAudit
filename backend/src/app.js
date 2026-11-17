@@ -11,7 +11,7 @@ import { checkApproved } from './middleware/rbac.js';
 
 //Routes
 import authRoutes from './routes/auth.js';
-import extinguisherRoutes from './routes/fireExtinguisherRoute.js';
+import poRouter from './routes/poRouter.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -64,7 +64,7 @@ app.get('/health', (req, res) => {
 
 // Authentication routes (login, register, refresh, logout, etc.)
 app.use('/api/auth', authRoutes);
-app.use('/api/extinguishers', extinguisherRoutes);
+app.use('/api/purchase-orders', poRouter);
 
 // ================================================================
 // PROTECTED ROUTES (Authentication + Approval required)

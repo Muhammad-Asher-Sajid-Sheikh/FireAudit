@@ -92,14 +92,10 @@ model AuditLog {
 }
 
 
-model FireExtinguisher {
-  batchId      String    @id @default(uuid())
-  model        String
-  batchSize    Int           @default(0)
-  expiryDate   DateTime
-  isExpired    Boolean   @default(false)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  @@map("FireExtinguisher")
+model PurchaseOrder {
+  id        String   @id @default(uuid()) // Or Int @id @default(autoincrement())
+  poNumber  String   @unique
+  date      DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
