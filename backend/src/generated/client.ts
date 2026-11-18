@@ -57,7 +57,27 @@ export type RefreshToken = Prisma.RefreshTokenModel
  */
 export type AuditLog = Prisma.AuditLogModel
 /**
- * Model FireExtinguisher
+ * Model Department
  * 
  */
-export type FireExtinguisher = Prisma.FireExtinguisherModel
+export type Department = Prisma.DepartmentModel
+/**
+ * Model Types
+ * 
+ */
+export type Types = Prisma.TypesModel
+/**
+ * Model PurchaseOrder
+ * 
+ */
+export type PurchaseOrder = Prisma.PurchaseOrderModel
+/**
+ * Model OrderForm
+ * 
+ */
+export type OrderForm = Prisma.OrderFormModel
+/**
+ * Model RecieveForm
+ * 
+ */
+export type RecieveForm = Prisma.RecieveFormModel

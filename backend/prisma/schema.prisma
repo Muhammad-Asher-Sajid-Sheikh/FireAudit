@@ -92,6 +92,22 @@ model AuditLog {
 }
 
 
+model Department {
+  id          String   @id @default(uuid())
+  deptName    String   @unique
+  focalPerson String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Types {
+  id                 String   @id @default(uuid())
+  name               String   @unique
+  specialInstructions String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
 model PurchaseOrder {
   id        String   @id @default(uuid()) // Or Int @id @default(autoincrement())
   poNumber  String   @unique

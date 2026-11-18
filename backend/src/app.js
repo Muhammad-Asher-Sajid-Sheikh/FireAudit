@@ -14,6 +14,8 @@ import authRoutes from './routes/auth.js';
 import poRouter from './routes/poRouter.js';
 import orderFormRoutes from './routes/orderFormRoutes.js';
 import receiveFormRoutes from './routes/receiveFormRoutes.js';
+import departmentRoutes from './routes/departmentRoutes.js';
+import typesRoutes from './routes/typesRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -69,6 +71,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/purchase-orders', poRouter);
 app.use('/api/order-forms', orderFormRoutes);
 app.use('/api/receive-forms', receiveFormRoutes);
+app.use('/api/departments', departmentRoutes);
+app.use('/api/types', typesRoutes);
 
 // ================================================================
 // PROTECTED ROUTES (Authentication + Approval required)

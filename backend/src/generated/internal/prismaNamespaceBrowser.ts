@@ -54,7 +54,11 @@ export const ModelName = {
   User: 'User',
   RefreshToken: 'RefreshToken',
   AuditLog: 'AuditLog',
-  FireExtinguisher: 'FireExtinguisher'
+  Department: 'Department',
+  Types: 'Types',
+  PurchaseOrder: 'PurchaseOrder',
+  OrderForm: 'OrderForm',
+  RecieveForm: 'RecieveForm'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -119,17 +123,67 @@ export const AuditLogScalarFieldEnum = {
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
 
 
-export const FireExtinguisherScalarFieldEnum = {
-  batchId: 'batchId',
-  model: 'model',
-  batchSize: 'batchSize',
-  expiryDate: 'expiryDate',
-  isExpired: 'isExpired',
+export const DepartmentScalarFieldEnum = {
+  id: 'id',
+  deptName: 'deptName',
+  focalPerson: 'focalPerson',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type FireExtinguisherScalarFieldEnum = (typeof FireExtinguisherScalarFieldEnum)[keyof typeof FireExtinguisherScalarFieldEnum]
+export type DepartmentScalarFieldEnum = (typeof DepartmentScalarFieldEnum)[keyof typeof DepartmentScalarFieldEnum]
+
+
+export const TypesScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  specialInstructions: 'specialInstructions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TypesScalarFieldEnum = (typeof TypesScalarFieldEnum)[keyof typeof TypesScalarFieldEnum]
+
+
+export const PurchaseOrderScalarFieldEnum = {
+  id: 'id',
+  poNumber: 'poNumber',
+  date: 'date',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PurchaseOrderScalarFieldEnum = (typeof PurchaseOrderScalarFieldEnum)[keyof typeof PurchaseOrderScalarFieldEnum]
+
+
+export const OrderFormScalarFieldEnum = {
+  id: 'id',
+  poId: 'poId',
+  foType: 'foType',
+  unit: 'unit',
+  quantity: 'quantity',
+  location: 'location',
+  date: 'date',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OrderFormScalarFieldEnum = (typeof OrderFormScalarFieldEnum)[keyof typeof OrderFormScalarFieldEnum]
+
+
+export const RecieveFormScalarFieldEnum = {
+  id: 'id',
+  poId: 'poId',
+  ofId: 'ofId',
+  foType: 'foType',
+  unit: 'unit',
+  quantity: 'quantity',
+  date: 'date',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RecieveFormScalarFieldEnum = (typeof RecieveFormScalarFieldEnum)[keyof typeof RecieveFormScalarFieldEnum]
 
 
 export const SortOrder = {
