@@ -95,7 +95,48 @@ model AuditLog {
 model PurchaseOrder {
   id        String   @id @default(uuid()) // Or Int @id @default(autoincrement())
   poNumber  String   @unique
-  date      DateTime
+  date      DateTime          @default(now())
+
+  // Opposite relation fields required by Prisma
+  orderForms   OrderForm[]
+  receiveForms RecieveForm[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+
+model OrderForm {
+  id            String        @id @default(uuid())
+  poId          String        // Foreign Key to PurchaseOrder
+  purchaseOrder PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
+  
+  // Opposite relation field required for RecieveForm
+  receiveForms  RecieveForm[]
+  
+  foType        String
+  unit          String
+  quantity      Int           // Use Float if decimals are needed
+  location      String
+  date          DateTime      @default(now())
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model RecieveForm {
+  id            String        @id @default(uuid())
+  poId          String        // Foreign Key to PurchaseOrder
+  purchaseOrder PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
+  
+  ofId          String        // Foreign Key to OrderForm
+  orderForm     OrderForm     @relation(fields: [ofId], references: [id], onDelete: Cascade)
+
+  foType        String
+  unit          String
+  quantity      Int
+  date          DateTime      @default(now())
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
